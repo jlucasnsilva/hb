@@ -131,10 +131,12 @@ func Text(text string) Element {
 	}
 }
 
-func Lazy(el, attribs string, children ...Element) func() Element {
-	return func() Element {
-		return E(el, attribs, children...)
+func Map[S ~[]E, E any](s S, mfn func(E) Element) Element {
+	result := make([]Element, len(s))
+	for i, e := range s {
+		result[i] = mfn(e)
 	}
+	return Group(result...)
 }
 
 func Template(raw string, children ...Element) Element {
@@ -142,6 +144,12 @@ func Template(raw string, children ...Element) Element {
 		element:  raw,
 		children: children,
 		typ:      typeTemplate,
+	}
+}
+
+func Lazy(el, attribs string, children ...Element) func() Element {
+	return func() Element {
+		return E(el, attribs, children...)
 	}
 }
 

@@ -133,6 +133,18 @@ func TestE(t *testing.T) {
 				E("li", "", Text("B")),
 			),
 		},
+		{
+			label:    "template with children should render correctly",
+			expected: "<!DOCTYPE html><html></html>",
+			el:       Template("<!DOCTYPE html>"+SlotTag, E("html", "")),
+		},
+		{
+			label:    "map should succeed",
+			expected: `<li>A</li><li>B</li>`,
+			el: Map([]string{"A", "B"}, func(s string) Element {
+				return E("li", "", Text(s))
+			}),
+		},
 	}
 
 	for i, tc := range testCases {
