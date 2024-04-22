@@ -178,10 +178,28 @@ func isVoid(el string) bool {
 	return found
 }
 
-func Attr(init string) *Attributes {
+func Attr(initAndKV ...string) *Attributes {
 	a := &Attributes{}
-	if init != "" {
-		a.write(init)
+	if len(initAndKV) < 1 {
+		return a
+	}
+
+	a.write(initAndKV[0])
+	kvs := initAndKV[1:]
+	if len(kvs) < 1 {
+		return a
+	}
+
+	if len(kvs)%2 != 0 {
+		panic(
+			"Attr error: Attr expects the initial attributes followed by zero or more pairs of key values",
+		)
+	}
+
+	for i := 0; i < len(kvs); i += 2 {
+		k := kvs[i]
+		v := kvs[i+1]
+		a.Attr(k, v)
 	}
 	return a
 }

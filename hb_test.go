@@ -164,6 +164,11 @@ func TestAttr(t *testing.T) {
 		{
 			label:    "should render nothing",
 			expected: "",
+			attr:     Attr(),
+		},
+		{
+			label:    "should render nothing",
+			expected: "",
 			attr:     Attr(""),
 		},
 		{
@@ -180,6 +185,11 @@ func TestAttr(t *testing.T) {
 			label:    "should render class",
 			expected: `class="container"`,
 			attr:     Attr(`class="container"`),
+		},
+		{
+			label:    "should render class and required and type",
+			expected: `class="container" required type="text"`,
+			attr:     Attr(`class="container"`, "required", "", "type", "text"),
 		},
 		{
 			label:    "should render class and required flag",
