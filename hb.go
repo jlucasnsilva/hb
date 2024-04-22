@@ -276,6 +276,9 @@ func (attr *Attributes) Raw(key, value string, cond ...bool) *Attributes {
 }
 
 func (attr *Attributes) String() string {
+	if attr == nil {
+		return ""
+	}
 	return attr.attr.String()
 }
 

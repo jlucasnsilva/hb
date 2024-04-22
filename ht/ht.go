@@ -1,11 +1,11 @@
-package html
+package ht
 
 import "github.com/jlucasnsilva/hb"
 
 func HTML5(
 	title string,
 	lang string,
-	head []hb.Element,
+	head hb.Element,
 	bodyAttr *hb.Attributes,
 	body hb.Element,
 ) hb.Element {
@@ -14,7 +14,7 @@ func HTML5(
 			hb.Attr("", "lang", lang).String(),
 			Head("",
 				Meta(`name="viewport" content="width=device-width, initial-scale=1.0"`),
-				hb.Group(head...),
+				head,
 				Title("", hb.Text(title)),
 			),
 			Body(bodyAttr.String(), body),
@@ -27,6 +27,10 @@ func HTMLDoctype(children ...hb.Element) hb.Element {
 		"<!DOCTYPE html>"+hb.SlotTag,
 		children...,
 	)
+}
+
+func CSSLink(filepath string) hb.Element {
+	return Link(hb.Attr(`rel="stylesheet"`, "href", filepath).String())
 }
 
 func A(attribs string, children ...hb.Element) hb.Element {
