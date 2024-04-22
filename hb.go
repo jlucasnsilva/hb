@@ -23,6 +23,7 @@ type (
 const (
 	typeEl = iota
 	typeText
+	typeGroup
 )
 
 var (
@@ -49,7 +50,7 @@ var (
 )
 
 func (el *Element) Render(w io.Writer) error {
-	if el.element == "" {
+	if el.element == "" && el.typ != typeGroup {
 		return nil
 	}
 
@@ -59,18 +60,22 @@ func (el *Element) Render(w io.Writer) error {
 		return nil
 	}
 
-	writeString(w, "<", el.element, el.attributes)
-	if isVoid(el.element) {
-		writeString(w, " />")
-		return nil
+	if el.typ != typeGroup {
+		writeString(w, "<", el.element, el.attributes)
+		if isVoid(el.element) {
+			writeString(w, " />")
+			return nil
+		}
+		writeString(w, ">")
 	}
-	writeString(w, ">")
 
 	for _, child := range el.children {
 		child.Render(w)
 	}
 
-	writeString(w, "</", el.element, ">")
+	if el.typ != typeGroup {
+		writeString(w, "</", el.element, ">")
+	}
 	return nil
 }
 
@@ -92,6 +97,13 @@ func E(el, attribs string, children ...Element) Element {
 		attributes: pad + attribs,
 	}
 	return res
+}
+
+func Group(children ...Element) Element {
+	return Element{
+		children: children,
+		typ:      typeGroup,
+	}
 }
 
 func Text(text string) Element {

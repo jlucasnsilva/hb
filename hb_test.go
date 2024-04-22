@@ -107,6 +107,16 @@ func TestE(t *testing.T) {
 				),
 			),
 		},
+		{
+			label:    "should render group correctly",
+			expected: `<li>A</li><li>B</li><li>C</li><li>D</li>`,
+			el: Group(
+				E("li", "", Text("A")),
+				E("li", "", Text("B")),
+				E("li", "", Text("C")),
+				E("li", "", Text("D")),
+			),
+		},
 	}
 
 	for i, tc := range testCases {
