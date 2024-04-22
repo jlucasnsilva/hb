@@ -20,10 +20,13 @@ type (
 	}
 )
 
+const SlotTag = "<|slot|>"
+
 const (
 	typeEl = iota
 	typeText
 	typeGroup
+	typeTemplate
 )
 
 var (
@@ -50,32 +53,47 @@ var (
 )
 
 func (el *Element) Render(w io.Writer) error {
-	if el.element == "" && el.typ != typeGroup {
-		return nil
-	}
+	switch el.typ {
+	case typeEl:
+		if el.element == "" {
+			return nil
+		}
 
-	if el.typ == typeText {
-		text := template.HTMLEscapeString(el.element)
-		writeString(w, text)
-		return nil
-	}
-
-	if el.typ != typeGroup {
 		writeString(w, "<", el.element, el.attributes)
 		if isVoid(el.element) {
 			writeString(w, " />")
 			return nil
 		}
 		writeString(w, ">")
-	}
 
-	for _, child := range el.children {
-		child.Render(w)
-	}
+		for _, child := range el.children {
+			child.Render(w)
+		}
 
-	if el.typ != typeGroup {
 		writeString(w, "</", el.element, ">")
+	case typeText:
+		text := template.HTMLEscapeString(el.element)
+		writeString(w, text)
+	case typeGroup:
+		for _, child := range el.children {
+			child.Render(w)
+		}
+	case typeTemplate:
+		if len(el.children) < 1 {
+			writeString(w, el.element)
+		} else {
+			parts := strings.Split(el.element, SlotTag)
+			if len(parts) != 2 {
+				panic("invalid template: only one slot is available and required per template")
+			}
+			writeString(w, parts[0])
+			for _, child := range el.children {
+				child.Render(w)
+			}
+			writeString(w, parts[1])
+		}
 	}
+
 	return nil
 }
 
@@ -116,6 +134,14 @@ func Text(text string) Element {
 func Lazy(el, attribs string, children ...Element) func() Element {
 	return func() Element {
 		return E(el, attribs, children...)
+	}
+}
+
+func Template(raw string, children ...Element) Element {
+	return Element{
+		element:  raw,
+		children: children,
+		typ:      typeTemplate,
 	}
 }
 
@@ -195,6 +221,20 @@ func (attr *Attributes) Case(key string, m map[string]bool) *Attributes {
 		}
 	}
 	attr.writePlain(`"`)
+	return attr
+}
+
+func (attr *Attributes) Switch(key string, idx int, values []string) *Attributes {
+	if len(values) < 1 {
+		panic("switch error: values cannot be empty")
+	}
+	if idx < 0 || idx >= len(values) {
+		panic("switch error: idx value out of bounds")
+	}
+
+	attr.write(template.HTMLEscapeString(key), `="`)
+	v := template.HTMLEscapeString(values[idx])
+	attr.writePlain(v, `"`)
 	return attr
 }
 

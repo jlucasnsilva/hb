@@ -117,6 +117,22 @@ func TestE(t *testing.T) {
 				E("li", "", Text("D")),
 			),
 		},
+		{
+			label:    "empty template should render correctly",
+			expected: "<html><head><title>New page</title></head><body></body></html>",
+			el: Template(
+				"<html><head><title>New page</title></head><body></body></html>",
+			),
+		},
+		{
+			label:    "template with children should render correctly",
+			expected: "<html><head><title>New page</title></head><body><ul><li>A</li><li>B</li></ul></body></html>",
+			el: Template(
+				"<html><head><title>New page</title></head><body><ul>"+SlotTag+"</ul></body></html>",
+				E("li", "", Text("A")),
+				E("li", "", Text("B")),
+			),
+		},
 	}
 
 	for i, tc := range testCases {
@@ -177,6 +193,12 @@ func TestAttr(t *testing.T) {
 			label:    "should NOT escape sequence",
 			expected: `class="<>"`,
 			attr:     Attr("").Raw("class", "<>"),
+		},
+		{
+			label:    "switch should render correctly",
+			expected: `type="select"`,
+			attr: Attr("").
+				Switch("type", 2, []string{"text", "submit", "select"}),
 		},
 	}
 
