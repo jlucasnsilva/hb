@@ -237,6 +237,24 @@ func (attr *Attributes) Flag(key string, cond bool) *Attributes {
 	return attr
 }
 
+func Flag(key string, cond bool) *Attributes {
+	return Attr().Flag(key, cond)
+}
+
+func (attr *Attributes) Comp(key string, values ...string) *Attributes {
+	attr.write(template.HTMLEscapeString(key), `="`, values[0])
+	for _, val := range values[1:] {
+		v := template.HTMLEscapeString(val)
+		attr.write(v)
+	}
+	attr.writePlain(`"`)
+	return attr
+}
+
+func Comp(key string, values ...string) *Attributes {
+	return Attr().Comp(key, values...)
+}
+
 func (attr *Attributes) Case(key string, m map[string]bool) *Attributes {
 	i := 0
 	attr.write(template.HTMLEscapeString(key), `="`)
@@ -254,6 +272,10 @@ func (attr *Attributes) Case(key string, m map[string]bool) *Attributes {
 	return attr
 }
 
+func Case(key string, m map[string]bool) *Attributes {
+	return Attr().Case(key, m)
+}
+
 func (attr *Attributes) Switch(key string, idx int, values []string) *Attributes {
 	if len(values) < 1 {
 		panic("switch error: values cannot be empty")
@@ -268,6 +290,10 @@ func (attr *Attributes) Switch(key string, idx int, values []string) *Attributes
 	return attr
 }
 
+func Switch(key string, idx int, values []string) *Attributes {
+	return Attr().Switch(key, idx, values)
+}
+
 func (attr *Attributes) Raw(key, value string, cond ...bool) *Attributes {
 	for _, c := range cond {
 		if !c {
@@ -277,6 +303,10 @@ func (attr *Attributes) Raw(key, value string, cond ...bool) *Attributes {
 
 	attr.write(key, `="`, value, `"`)
 	return attr
+}
+
+func Raw(key, value string, cond ...bool) *Attributes {
+	return Attr().Raw(key, value, cond...)
 }
 
 func (attr *Attributes) String() string {
