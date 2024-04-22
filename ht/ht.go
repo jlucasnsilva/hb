@@ -526,7 +526,7 @@ func U(attribs string, children ...hb.Element) hb.Element {
 	return hb.E("u", attribs, children...)
 }
 
-func UL(attribs string, children ...hb.Element) hb.Element {
+func Ul(attribs string, children ...hb.Element) hb.Element {
 	return hb.E("ul", attribs, children...)
 }
 
