@@ -117,6 +117,10 @@ func E(el, attribs string, children ...Element) Element {
 	return res
 }
 
+func T(el string, attribs *Attributes, children ...Element) Element {
+	return E(el, attribs.String(), children...)
+}
+
 func Group(children ...Element) Element {
 	return Element{
 		children: children,
