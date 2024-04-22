@@ -33,6 +33,15 @@ func CSSLink(filepath string) hb.Element {
 	return Link(hb.Attr(`rel="stylesheet"`, "href", filepath).String())
 }
 
+func ScriptFile(deferFlag bool, filepath string) hb.Element {
+	return Script(
+		hb.Attr("").
+			Attr("defer", "", deferFlag).
+			Attr("src", filepath).
+			String(),
+	)
+}
+
 func A(attribs string, children ...hb.Element) hb.Element {
 	return hb.E("a", attribs, children...)
 }
