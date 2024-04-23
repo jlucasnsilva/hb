@@ -103,22 +103,16 @@ func writeString(w io.Writer, parts ...string) {
 	}
 }
 
-func E(el, attribs string, children ...Element) Element {
+func E(el string, attribs *Attributes, children ...Element) Element {
 	pad := ""
-	if attribs != "" {
+	if attribs != nil && attribs.attr.Len() > 0 {
 		pad = " "
 	}
-
-	res := Element{
+	return Element{
 		element:    el,
 		children:   children,
-		attributes: pad + attribs,
+		attributes: pad + attribs.String(),
 	}
-	return res
-}
-
-func T(el string, attribs *Attributes, children ...Element) Element {
-	return E(el, attribs.String(), children...)
 }
 
 func Group(children ...Element) Element {
@@ -151,7 +145,7 @@ func Template(raw string, children ...Element) Element {
 	}
 }
 
-func Lazy(el, attribs string, children ...Element) func() Element {
+func Lazy(el string, attribs *Attributes, children ...Element) func() Element {
 	return func() Element {
 		return E(el, attribs, children...)
 	}
@@ -182,16 +176,23 @@ func isVoid(el string) bool {
 	return found
 }
 
-func Attr(initAndKV ...string) *Attributes {
+func Attr(init string) *Attributes {
 	a := &Attributes{}
-	if len(initAndKV) < 1 {
-		return a
-	}
+	a.write(init)
+	return a
+}
 
-	a.write(initAndKV[0])
-	kvs := initAndKV[1:]
+func KV(kvs ...string) *Attributes {
 	if len(kvs) < 1 {
-		return a
+		return nil
+	}
+	a := &Attributes{}
+	return a.KV(kvs...)
+}
+
+func (attr *Attributes) KV(kvs ...string) *Attributes {
+	if len(kvs) < 1 {
+		return attr
 	}
 
 	if len(kvs)%2 != 0 {
@@ -203,23 +204,22 @@ func Attr(initAndKV ...string) *Attributes {
 	for i := 0; i < len(kvs); i += 2 {
 		k := kvs[i]
 		v := kvs[i+1]
-		a.Attr(k, v)
+		attr.Maybe(k, v, true)
 	}
-	return a
+	return attr
 }
 
-func (attr *Attributes) Attr(key, value string, cond ...bool) *Attributes {
-	if key == "" {
+func Maybe(key, value string, cond bool) *Attributes {
+	a := &Attributes{}
+	return a.Maybe(key, value, cond)
+}
+
+func (attr *Attributes) Maybe(key, value string, cond bool) *Attributes {
+	if key == "" || !cond {
 		return attr
 	}
+
 	k := template.HTMLEscapeString(key)
-
-	for _, c := range cond {
-		if !c {
-			return attr
-		}
-	}
-
 	if value == "" {
 		attr.write(k)
 		return attr
@@ -238,10 +238,16 @@ func (attr *Attributes) Flag(key string, cond bool) *Attributes {
 }
 
 func Flag(key string, cond bool) *Attributes {
-	return Attr().Flag(key, cond)
+	a := &Attributes{}
+	return a.Flag(key, cond)
 }
 
-func (attr *Attributes) Comp(key string, values ...string) *Attributes {
+func Comp(key string, values []string) *Attributes {
+	a := &Attributes{}
+	return a.Comp(key, values)
+}
+
+func (attr *Attributes) Comp(key string, values []string) *Attributes {
 	attr.write(template.HTMLEscapeString(key), `="`, values[0])
 	for _, val := range values[1:] {
 		v := template.HTMLEscapeString(val)
@@ -251,8 +257,9 @@ func (attr *Attributes) Comp(key string, values ...string) *Attributes {
 	return attr
 }
 
-func Comp(key string, values ...string) *Attributes {
-	return Attr().Comp(key, values...)
+func Case(key string, m map[string]bool) *Attributes {
+	a := &Attributes{}
+	return a.Case(key, m)
 }
 
 func (attr *Attributes) Case(key string, m map[string]bool) *Attributes {
@@ -272,11 +279,15 @@ func (attr *Attributes) Case(key string, m map[string]bool) *Attributes {
 	return attr
 }
 
-func Case(key string, m map[string]bool) *Attributes {
-	return Attr().Case(key, m)
+func Switch(key string, idx int, values []string) *Attributes {
+	a := &Attributes{}
+	return a.Switch(key, idx, values)
 }
 
 func (attr *Attributes) Switch(key string, idx int, values []string) *Attributes {
+	if key == "" {
+		panic("switch error: key cannot be empty")
+	}
 	if len(values) < 1 {
 		panic("switch error: values cannot be empty")
 	}
@@ -290,8 +301,9 @@ func (attr *Attributes) Switch(key string, idx int, values []string) *Attributes
 	return attr
 }
 
-func Switch(key string, idx int, values []string) *Attributes {
-	return Attr().Switch(key, idx, values)
+func Raw(key, value string, cond ...bool) *Attributes {
+	a := &Attributes{}
+	return a.Raw(key, value, cond...)
 }
 
 func (attr *Attributes) Raw(key, value string, cond ...bool) *Attributes {
@@ -303,10 +315,6 @@ func (attr *Attributes) Raw(key, value string, cond ...bool) *Attributes {
 
 	attr.write(key, `="`, value, `"`)
 	return attr
-}
-
-func Raw(key, value string, cond ...bool) *Attributes {
-	return Attr().Raw(key, value, cond...)
 }
 
 func (attr *Attributes) String() string {

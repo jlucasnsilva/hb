@@ -36,74 +36,74 @@ func TestE(t *testing.T) {
 		{
 			label:    "simple case should succeed",
 			expected: `<h1>Title</h1>`,
-			el:       E("h1", "", Text("Title")),
+			el:       E("h1", nil, Text("Title")),
 		},
 		{
 			label:    "void element should render correctly",
 			expected: `<img src="/img/ninja.png" alt="Ninja pic" />`,
-			el:       E("img", `src="/img/ninja.png" alt="Ninja pic"`),
+			el:       E("img", Attr(`src="/img/ninja.png" alt="Ninja pic"`)),
 		},
 		{
 			label:    "children should render correctly",
 			expected: `<ul class="list"><li class="item">A</li><li class="item"><button onclick="bye()">Exit</button></li></ul>`,
-			el: E("ul", `class="list"`,
-				E("li", `class="item"`, Text("A")),
-				E("li", `class="item"`,
-					E("button", `onclick="bye()"`, Text("Exit")),
+			el: E("ul", Attr(`class="list"`),
+				E("li", Attr(`class="item"`), Text("A")),
+				E("li", Attr(`class="item"`),
+					E("button", Attr(`onclick="bye()"`), Text("Exit")),
 				),
 			),
 		},
 		{
 			label:    "conditional elements should render correctly",
 			expected: `<div><p>Hello, world!</p></div>`,
-			el: E("div", "",
+			el: E("div", nil,
 				If(true,
-					E("p", "", Text("Hello, world!")),
-					E("h1", "", Text("Hello, world!")),
+					E("p", nil, Text("Hello, world!")),
+					E("h1", nil, Text("Hello, world!")),
 				),
 			),
 		},
 		{
 			label:    "conditional elements should render nothing",
 			expected: `<div></div>`,
-			el: E("div", "",
-				If(false, E("p", "", Text("Hello, world!"))),
+			el: E("div", nil,
+				If(false, E("p", nil, Text("Hello, world!"))),
 			),
 		},
 		{
 			label:    "conditional elements should render correctly",
 			expected: `<div><h1>Hello, world!</h1></div>`,
-			el: E("div", "",
+			el: E("div", nil,
 				If(false,
-					E("p", "", Text("Hello, world!")),
-					E("h1", "", Text("Hello, world!")),
+					E("p", nil, Text("Hello, world!")),
+					E("h1", nil, Text("Hello, world!")),
 				),
 			),
 		},
 		{
 			label:    "conditional lazy elements should render correctly",
 			expected: `<div><p>Hello, world!</p></div>`,
-			el: E("div", "",
+			el: E("div", nil,
 				When(true,
-					Lazy("p", "", Text("Hello, world!")),
-					Lazy("h1", "", Text("Hello, world!")),
+					Lazy("p", nil, Text("Hello, world!")),
+					Lazy("h1", nil, Text("Hello, world!")),
 				),
 			),
 		},
 		{
 			label:    "conditional lazy elements should render nothing",
 			expected: `<div></div>`,
-			el: E("div", "",
-				When(false, Lazy("p", "", Text("Hello, world!"))),
+			el: E("div", nil,
+				When(false, Lazy("p", nil, Text("Hello, world!"))),
 			),
 		},
 		{
 			label:    "conditional lazy elements should render correctly",
 			expected: `<div><h1>Hello, world!</h1></div>`,
-			el: E("div", "",
+			el: E("div", nil,
 				When(false,
-					Lazy("p", "", Text("Hello, world!")),
-					Lazy("h1", "", Text("Hello, world!")),
+					Lazy("p", nil, Text("Hello, world!")),
+					Lazy("h1", nil, Text("Hello, world!")),
 				),
 			),
 		},
@@ -111,10 +111,10 @@ func TestE(t *testing.T) {
 			label:    "should render group correctly",
 			expected: `<li>A</li><li>B</li><li>C</li><li>D</li>`,
 			el: Group(
-				E("li", "", Text("A")),
-				E("li", "", Text("B")),
-				E("li", "", Text("C")),
-				E("li", "", Text("D")),
+				E("li", nil, Text("A")),
+				E("li", nil, Text("B")),
+				E("li", nil, Text("C")),
+				E("li", nil, Text("D")),
 			),
 		},
 		{
@@ -129,20 +129,20 @@ func TestE(t *testing.T) {
 			expected: "<html><head><title>New page</title></head><body><ul><li>A</li><li>B</li></ul></body></html>",
 			el: Template(
 				"<html><head><title>New page</title></head><body><ul>"+SlotTag+"</ul></body></html>",
-				E("li", "", Text("A")),
-				E("li", "", Text("B")),
+				E("li", nil, Text("A")),
+				E("li", nil, Text("B")),
 			),
 		},
 		{
 			label:    "template with children should render correctly",
 			expected: "<!DOCTYPE html><html></html>",
-			el:       Template("<!DOCTYPE html>"+SlotTag, E("html", "")),
+			el:       Template("<!DOCTYPE html>"+SlotTag, E("html", nil)),
 		},
 		{
 			label:    "map should succeed",
 			expected: `<li>A</li><li>B</li>`,
 			el: Map([]string{"A", "B"}, func(s string) Element {
-				return E("li", "", Text(s))
+				return E("li", nil, Text(s))
 			}),
 		},
 	}
@@ -164,7 +164,7 @@ func TestAttr(t *testing.T) {
 		{
 			label:    "should render nothing",
 			expected: "",
-			attr:     Attr(),
+			attr:     nil,
 		},
 		{
 			label:    "should render nothing",
@@ -189,7 +189,7 @@ func TestAttr(t *testing.T) {
 		{
 			label:    "should render class and required and type",
 			expected: `class="container" required type="text"`,
-			attr:     Attr(`class="container"`, "required", "", "type", "text"),
+			attr:     Attr(`class="container"`).KV("required", "", "type", "text"),
 		},
 		{
 			label:    "should render class and required flag",
@@ -201,26 +201,29 @@ func TestAttr(t *testing.T) {
 		{
 			label:    "should render class and required flag",
 			expected: `class="container" required`,
-			attr: Attr("").
-				Attr("class", "container").
-				Attr("required", "", true).
-				Attr("open", "", false),
+			attr: KV("class", "container").
+				Maybe("required", "", true).
+				Maybe("open", "", false),
 		},
 		{
 			label:    "should escape sequence",
 			expected: `class="&lt;&gt;"`,
-			attr:     Attr("").Attr("class", "<>"),
+			attr:     KV("class", "<>"),
 		},
 		{
 			label:    "should NOT escape sequence",
 			expected: `class="<>"`,
-			attr:     Attr("").Raw("class", "<>"),
+			attr:     Raw("class", "<>"),
 		},
 		{
 			label:    "switch should render correctly",
 			expected: `type="select"`,
-			attr: Attr("").
-				Switch("type", 2, []string{"text", "submit", "select"}),
+			attr:     Switch("type", 2, []string{"text", "submit", "select"}),
+		},
+		{
+			label:    "comp should render correctly",
+			expected: `class="btn btn-outline"`,
+			attr:     Comp("class", []string{"btn", "btn-outline"}),
 		},
 	}
 
