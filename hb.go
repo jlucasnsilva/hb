@@ -115,6 +115,13 @@ func E(el string, attribs *Attributes, children ...Element) Element {
 	}
 }
 
+func Pack(children []Element) Element {
+	return Element{
+		children: children,
+		typ:      typeGroup,
+	}
+}
+
 func Group(children ...Element) Element {
 	return Element{
 		children: children,
