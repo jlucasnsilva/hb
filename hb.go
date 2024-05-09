@@ -222,19 +222,19 @@ func Maybe(key, value string, cond bool) *Attributes {
 }
 
 func (attr *Attributes) Maybe(key, value string, cond bool) *Attributes {
-	if key == "" || !cond {
+	if key == "" || value == "" || !cond {
 		return attr
 	}
 
 	k := template.HTMLEscapeString(key)
-	if value == "" {
-		attr.write(k)
-		return attr
-	}
-
 	v := template.HTMLEscapeString(value)
 	attr.write(k, `="`, v, `"`)
 	return attr
+}
+
+func Flag(key string, cond bool) *Attributes {
+	a := &Attributes{}
+	return a.Flag(key, cond)
 }
 
 func (attr *Attributes) Flag(key string, cond bool) *Attributes {
@@ -244,17 +244,16 @@ func (attr *Attributes) Flag(key string, cond bool) *Attributes {
 	return attr
 }
 
-func Flag(key string, cond bool) *Attributes {
-	a := &Attributes{}
-	return a.Flag(key, cond)
-}
-
 func Comp(key string, values []string) *Attributes {
 	a := &Attributes{}
 	return a.Comp(key, values)
 }
 
 func (attr *Attributes) Comp(key string, values []string) *Attributes {
+	if key == "" || len(values) < 1 {
+		return attr
+	}
+
 	attr.write(template.HTMLEscapeString(key), `="`, values[0])
 	for _, val := range values[1:] {
 		v := template.HTMLEscapeString(val)
